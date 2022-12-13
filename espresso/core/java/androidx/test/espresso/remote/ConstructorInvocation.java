@@ -20,11 +20,10 @@ import static androidx.test.internal.util.Checks.checkNotNull;
 import static androidx.test.internal.util.Checks.checkState;
 import static androidx.test.internal.util.LogUtil.logDebug;
 
+import android.util.LruCache;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -34,8 +33,8 @@ import java.util.Locale;
 /** Reflectively invokes the constructor of a declared class. */
 public final class ConstructorInvocation {
   private static final String TAG = "ConstructorInvocation";
-  private static final Cache<ConstructorKey, Constructor<?>> constructorCache =
-      CacheBuilder.newBuilder().maximumSize(256 /* LRU eviction after max size exceeded */).build();
+  private static final LruCache<ConstructorKey, Constructor<?>> constructorCache =
+      new LruCache<>(256 /* LRU eviction after max size exceeded */);
 
   private final Class<?> clazz;
   @Nullable private final Class<? extends Annotation> annotationClass;
@@ -66,7 +65,7 @@ public final class ConstructorInvocation {
 
   @VisibleForTesting
   static void invalidateCache() {
-    constructorCache.invalidateAll();
+    constructorCache.evictAll();
   }
 
   /**
@@ -86,7 +85,7 @@ public final class ConstructorInvocation {
     ConstructorKey constructorKey = new ConstructorKey(clazz, parameterTypes);
     try {
       // Lookup constructor in cache
-      constructor = constructorCache.getIfPresent(constructorKey);
+      constructor = constructorCache.get(constructorKey);
       if (null == constructor) {
         logDebug(
             TAG,

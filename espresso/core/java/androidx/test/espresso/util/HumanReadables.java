@@ -31,17 +31,12 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.widget.Checkable;
 import android.widget.TextView;
-import androidx.test.espresso.util.TreeIterables.ViewAndDistance;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.MoreObjects.ToStringHelper;
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import kotlin.collections.CollectionsKt;
+import kotlin.text.StringsKt;
 
 /** Text converters for various Android objects. */
 public final class HumanReadables {
@@ -109,25 +104,21 @@ public final class HumanReadables {
     }
 
     String viewHierarchyDump =
-        Joiner.on("\n|\n")
-            .join(
-                Iterables.transform(
-                    depthFirstViewTraversalWithDistance(rootView),
-                    new Function<ViewAndDistance, String>() {
-                      @Override
-                      public String apply(ViewAndDistance viewAndDistance) {
-                        String formatString = "+%s%s ";
-                        if (problemViews != null
-                            && problemViews.contains(viewAndDistance.getView())) {
-                          formatString += problemViewSuffix;
-                        }
-                        return String.format(
-                            Locale.ROOT,
-                            formatString,
-                            Strings.padStart(">", viewAndDistance.getDistanceFromRoot() + 1, '-'),
-                            HumanReadables.describe(viewAndDistance.getView()));
-                      }
-                    }));
+        StringJoinerKt.joinToString(
+            CollectionsKt.map(
+                depthFirstViewTraversalWithDistance(rootView),
+                viewAndDistance -> {
+                  String formatString = "+%s%s ";
+                  if (problemViews != null && problemViews.contains(viewAndDistance.getView())) {
+                    formatString += problemViewSuffix;
+                  }
+                  return String.format(
+                      Locale.ROOT,
+                      formatString,
+                      StringsKt.padStart(">", viewAndDistance.getDistanceFromRoot() + 1, '-'),
+                      HumanReadables.describe(viewAndDistance.getView()));
+                }),
+            "\n|\n");
 
     errorMessage.append("\n\nView Hierarchy:\n").append(viewHierarchyDump);
 
@@ -202,82 +193,84 @@ public final class HumanReadables {
     if (null == v) {
       return "null";
     }
-    ToStringHelper helper = MoreObjects.toStringHelper(v).add("id", v.getId());
+    StringBuilder builder = new StringBuilder(v.getClass().getSimpleName() + "{");
+    builder.append("id=" + v.getId());
     if (v.getId() != View.NO_ID
         && v.getId() != 0
         && v.getResources() != null
         && !isViewIdGenerated(v.getId())) {
       try {
-        helper.add("res-name", v.getResources().getResourceEntryName(v.getId()));
+        builder.append(", res-name=" + v.getResources().getResourceEntryName(v.getId()));
       } catch (Resources.NotFoundException ignore) {
         // Do nothing.
       }
     }
     if (null != v.getContentDescription()) {
-      helper.add("desc", v.getContentDescription());
+      builder.append(", desc=" + v.getContentDescription());
     }
 
     switch (v.getVisibility()) {
       case View.GONE:
-        helper.add("visibility", "GONE");
+        builder.append(", visibility=GONE");
         break;
       case View.INVISIBLE:
-        helper.add("visibility", "INVISIBLE");
+        builder.append(", visibility=INVISIBLE");
         break;
       case View.VISIBLE:
-        helper.add("visibility", "VISIBLE");
+        builder.append(", visibility=VISIBLE");
         break;
       default:
-        helper.add("visibility", v.getVisibility());
+        builder.append(", visibility=" + v.getVisibility());
     }
 
-    helper
-        .add("width", v.getWidth())
-        .add("height", v.getHeight())
-        .add("has-focus", v.hasFocus())
-        .add("has-focusable", v.hasFocusable())
-        .add("has-window-focus", v.hasWindowFocus())
-        .add("is-clickable", v.isClickable())
-        .add("is-enabled", v.isEnabled())
-        .add("is-focused", v.isFocused())
-        .add("is-focusable", v.isFocusable())
-        .add("is-layout-requested", v.isLayoutRequested())
-        .add("is-selected", v.isSelected())
-        .add("layout-params", replaceHashCodes(v.getLayoutParams()))
-        .add("tag", v.getTag());
+    builder
+        .append(", width=" + v.getWidth())
+        .append(", height=" + v.getHeight())
+        .append(", has-focus=" + v.hasFocus())
+        .append(", has-focusable=" + v.hasFocusable())
+        .append(", has-window-focus=" + v.hasWindowFocus())
+        .append(", is-clickable=" + v.isClickable())
+        .append(", is-enabled=" + v.isEnabled())
+        .append(", is-focused=" + v.isFocused())
+        .append(", is-focusable=" + v.isFocusable())
+        .append(", is-layout-requested=" + v.isLayoutRequested())
+        .append(", is-selected=" + v.isSelected())
+        .append(", layout-params=" + replaceHashCodes(v.getLayoutParams()))
+        .append(", tag=" + v.getTag());
 
     if (null != v.getRootView()) {
       // pretty much only true in unit-tests.
-      helper.add("root-is-layout-requested", v.getRootView().isLayoutRequested());
+      builder.append(", root-is-layout-requested=" + v.getRootView().isLayoutRequested());
     }
 
     EditorInfo ei = new EditorInfo();
     InputConnection ic = v.onCreateInputConnection(ei);
     boolean hasInputConnection = ic != null;
-    helper.add("has-input-connection", hasInputConnection);
+    builder.append(", has-input-connection=" + hasInputConnection);
     if (hasInputConnection) {
       StringBuilder sb = new StringBuilder();
-      sb.append("[");
-      Printer p = new StringBuilderPrinter(sb);
+      builder.append("[");
+      Printer p = new StringBuilderPrinter(builder);
       ei.dump(p, "");
-      sb.append("]");
-      helper.add("editor-info", sb.toString().replace("\n", " "));
+      builder.append("]");
+      builder.append(", editor-info" + sb.toString().replace("\n", " "));
     }
 
     if (Build.VERSION.SDK_INT > 10) {
-      helper.add("x", v.getX()).add("y", v.getY());
+      builder.append(", x=" + v.getX()).append(", y=" + v.getY());
     }
 
     if (v instanceof TextView) {
-      innerDescribe((TextView) v, helper);
+      innerDescribe((TextView) v, builder);
     }
     if (v instanceof Checkable) {
-      innerDescribe((Checkable) v, helper);
+      innerDescribe((Checkable) v, builder);
     }
     if (v instanceof ViewGroup) {
-      innerDescribe((ViewGroup) v, helper);
+      innerDescribe((ViewGroup) v, builder);
     }
-    return helper.toString();
+    builder.append("}");
+    return builder.toString();
   }
 
   /** Replaces every hexadecimal hash code with "YYYYYY". */
@@ -293,30 +286,30 @@ public final class HumanReadables {
     return str;
   }
 
-  private static void innerDescribe(TextView textBox, ToStringHelper helper) {
+  private static void innerDescribe(TextView textBox, StringBuilder builder) {
     if (null != textBox.getText()) {
-      helper.add("text", textBox.getText());
+      builder.append(", text=" + textBox.getText());
     }
 
     if (null != textBox.getError()) {
-      helper.add("error-text", textBox.getError());
+      builder.append(", error-text=" + textBox.getError());
     }
 
     if (null != textBox.getHint()) {
-      helper.add("hint", textBox.getHint());
+      builder.append(", hint=" + textBox.getHint());
     }
 
-    helper.add("input-type", textBox.getInputType());
-    helper.add("ime-target", textBox.isInputMethodTarget());
-    helper.add("has-links", textBox.getUrls().length > 0);
+    builder.append(", input-type=" + textBox.getInputType());
+    builder.append(", ime-target=" + textBox.isInputMethodTarget());
+    builder.append(", has-links=" + Boolean.toString(textBox.getUrls().length > 0));
   }
 
-  private static void innerDescribe(Checkable checkable, ToStringHelper helper) {
-    helper.add("is-checked", checkable.isChecked());
+  private static void innerDescribe(Checkable checkable, StringBuilder builder) {
+    builder.append(", is-checked=" + checkable.isChecked());
   }
 
-  private static void innerDescribe(ViewGroup viewGroup, ToStringHelper helper) {
-    helper.add("child-count", viewGroup.getChildCount());
+  private static void innerDescribe(ViewGroup viewGroup, StringBuilder builder) {
+    builder.append(", child-count=" + viewGroup.getChildCount());
   }
   /**
    * IDs generated by {@link View#generateViewId} will fail if used as a resource ID in attempted

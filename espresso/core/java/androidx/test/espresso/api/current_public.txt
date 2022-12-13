@@ -796,12 +796,9 @@ package androidx.test.espresso.util {
     method @Deprecated public T! get();
     method @Deprecated public boolean isPresent();
     method @Deprecated public static <T> androidx.test.espresso.util.EspressoOptional<T!>! of(T!);
-    method @Deprecated public com.google.common.base.Optional<T!>! or(com.google.common.base.Optional<? extends T>!);
-    method @Deprecated public T! or(com.google.common.base.Supplier<? extends T>!);
+    method @Deprecated public androidx.test.espresso.util.EspressoOptional<? extends T>! or(androidx.test.espresso.util.EspressoOptional<? extends T>!);
     method @Deprecated public T! or(T!);
     method @Deprecated public T! orNull();
-    method @Deprecated @com.google.common.annotations.Beta public static <T> Iterable<T!>! presentInstances(Iterable<? extends com.google.common.base.Optional<? extends T>>!);
-    method @Deprecated public <V> com.google.common.base.Optional<V!>! transform(com.google.common.base.Function<? super T,V!>!);
   }
 
   public final class HumanReadables {
@@ -809,6 +806,12 @@ package androidx.test.espresso.util {
     method public static String! describe(android.view.View!);
     method public static String! getViewHierarchyErrorMessage(android.view.View!, java.util.List<android.view.View!>!, String!, String!);
     method public static String! getViewHierarchyErrorMessage(android.view.View!, java.util.List<android.view.View!>!, String!, String!, int);
+  }
+
+  public final class IterablesKt {
+  }
+
+  public final class StringJoinerKt {
   }
 
   public final class TreeIterables {

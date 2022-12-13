@@ -20,6 +20,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.internal.util.Checks.checkNotNull;
 import static androidx.test.internal.util.Checks.checkState;
+import static kotlin.collections.CollectionsKt.mutableListOf;
 import static org.hamcrest.Matchers.allOf;
 
 import android.view.View;
@@ -31,7 +32,6 @@ import androidx.test.espresso.UiController;
 import androidx.test.espresso.ViewAction;
 import androidx.test.espresso.util.EspressoOptional;
 import androidx.test.espresso.util.HumanReadables;
-import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Locale;
 import org.hamcrest.Matcher;
@@ -87,7 +87,7 @@ public final class AdapterDataLoaderAction implements ViewAction {
   @Override
   public void perform(UiController uiController, View view) {
     AdapterView<? extends Adapter> adapterView = (AdapterView<? extends Adapter>) view;
-    List<AdapterViewProtocol.AdaptedData> matchedDataItems = Lists.newArrayList();
+    List<AdapterViewProtocol.AdaptedData> matchedDataItems = mutableListOf();
 
     for (AdapterViewProtocol.AdaptedData data :
         adapterViewProtocol.getDataInAdapterView(adapterView)) {

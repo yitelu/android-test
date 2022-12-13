@@ -30,6 +30,5 @@ android_library(
         "//espresso/web/java/androidx/test/espresso/web/assertion",
         "//runner/android_junit_runner/java/androidx/test:runner",
         "@com_google_protobuf//:protobuf_javalite",
-        "@maven//:com_google_guava_guava",
     ],
 )

@@ -17,6 +17,8 @@
 package androidx.test.espresso.base;
 
 import static androidx.test.internal.util.Checks.checkState;
+import static kotlin.collections.CollectionsKt.listOf;
+import static kotlin.collections.CollectionsKt.mutableListOf;
 
 import android.os.Build;
 import android.os.Looper;
@@ -24,7 +26,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager.LayoutParams;
 import androidx.test.espresso.Root;
-import com.google.common.collect.Lists;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -78,16 +79,16 @@ final class RootsOracle implements ActiveRootLister {
 
     if (null == windowManagerObj) {
       Log.w(TAG, "No reflective access to windowmanager object.");
-      return Lists.newArrayList();
+      return listOf();
     }
 
     if (null == viewsField) {
       Log.w(TAG, "No reflective access to mViews");
-      return Lists.newArrayList();
+      return listOf();
     }
     if (null == paramsField) {
       Log.w(TAG, "No reflective access to mParams");
-      return Lists.newArrayList();
+      return listOf();
     }
 
     List<View> views = null;
@@ -111,7 +112,7 @@ final class RootsOracle implements ActiveRootLister {
               paramsField,
               windowManagerObj),
           re);
-      return Lists.newArrayList();
+      return listOf();
     } catch (IllegalAccessException iae) {
       Log.w(
           TAG,
@@ -122,10 +123,10 @@ final class RootsOracle implements ActiveRootLister {
               paramsField,
               windowManagerObj),
           iae);
-      return Lists.newArrayList();
+      return listOf();
     }
 
-    List<Root> roots = Lists.newArrayList();
+    List<Root> roots = mutableListOf();
     for (int i = views.size() - 1; i > -1; i--) {
       roots.add(
           new Root.Builder()

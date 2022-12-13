@@ -17,7 +17,6 @@
 package androidx.test.espresso;
 
 import static androidx.test.internal.util.Checks.checkNotNull;
-import static com.google.common.base.MoreObjects.toStringHelper;
 
 import android.view.View;
 import android.view.WindowManager;
@@ -25,7 +24,6 @@ import android.view.WindowManager.LayoutParams;
 import androidx.annotation.Nullable;
 import androidx.test.espresso.util.EspressoOptional;
 import androidx.test.espresso.util.HumanReadables;
-import com.google.common.base.MoreObjects.ToStringHelper;
 
 /**
  * Represents a root view in the application and optionally the layout params of the window holding
@@ -77,18 +75,24 @@ public final class Root {
 
   @Override
   public String toString() {
-    ToStringHelper helper =
-        toStringHelper(this)
-            .add("application-window-token", decorView.getApplicationWindowToken())
-            .add("window-token", decorView.getWindowToken())
-            .add("has-window-focus", decorView.hasWindowFocus());
+    String s =
+        "Root{"
+            + "application-window-token="
+            + decorView.getApplicationWindowToken()
+            + ", window-token="
+            + decorView.getWindowToken()
+            + ", has-window-focus="
+            + decorView.hasWindowFocus();
+
     if (windowLayoutParams != null) {
-      helper
-          .add("layout-params-type", windowLayoutParams.type)
-          .add("layout-params-string", windowLayoutParams);
+      s =
+          s
+              + ", layout-params-type="
+              + windowLayoutParams.type
+              + ", layout-params-string="
+              + windowLayoutParams;
     }
-    helper.add("decor-view-string", HumanReadables.describe(decorView));
-    return helper.toString();
+    return s + ", decor-view-string=" + HumanReadables.describe(decorView) + "}";
   }
 
   public static class Builder {

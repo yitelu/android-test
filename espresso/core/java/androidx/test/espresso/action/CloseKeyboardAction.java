@@ -17,7 +17,6 @@
 package androidx.test.espresso.action;
 
 import static androidx.test.internal.util.Checks.checkState;
-import static com.google.common.collect.Iterables.getOnlyElement;
 import static org.hamcrest.Matchers.any;
 
 import android.app.Activity;
@@ -40,6 +39,7 @@ import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry;
 import androidx.test.runner.lifecycle.Stage;
 import java.util.Collection;
 import java.util.concurrent.TimeoutException;
+import kotlin.collections.CollectionsKt;
 import org.hamcrest.Matcher;
 
 /** Closes soft keyboard. */
@@ -138,7 +138,7 @@ public final class CloseKeyboardAction implements ViewAction {
         "More than one activity is in RESUMED stage."
             + " There may have been an error during the activity creation/startup process,"
             + " please check your logs.");
-    return getOnlyElement(resumedActivities);
+    return CollectionsKt.single(resumedActivities);
   }
 
   @Override
